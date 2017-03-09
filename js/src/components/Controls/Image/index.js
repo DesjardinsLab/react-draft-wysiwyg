@@ -147,6 +147,9 @@ class ImageControl extends Component {
           dragEnter: false,
         });
         this.addImageFromSrcLink(data.link);
+      })
+      .catch((e) => {
+        console.warn('Warning:', e);
       });
   };
 
