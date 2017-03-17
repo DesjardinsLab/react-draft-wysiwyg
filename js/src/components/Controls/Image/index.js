@@ -52,7 +52,20 @@ class ImageControl extends Component {
     this.setState({
       dragEnter: false,
     });
-    this.uploadImage(event.dataTransfer.files[0]);
+    const data = event.dataTransfer.items;
+    for (let i = 0; i < data.length; i += 1) {
+      if (data[i].kind === 'string' && data[i].type.match('^text/plain')) {
+        // This item is the target node
+      } else if (data[i].kind === 'string' && data[i].type.match('^text/html')) {
+        // Drag data item is HTML
+      } else if (data[i].kind === 'string' && data[i].type.match('^text/uri-list')) {
+        // Drag data item is URI
+      } else if (data[i].kind === 'file' && data[i].type.match('^image/')) {
+        // Drag data item is an image file
+        const file = data[i].getAsFile();
+        this.uploadImage(file);
+      }
+    }
   };
 
   onDragEnter: Function = (event: Object): void => {
