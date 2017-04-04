@@ -62,6 +62,7 @@ export default class WysiwygEditor extends Component {
     stripPastedStyles: PropTypes.bool,
     toolbar: PropTypes.object,
     toolbarCustomButtons: PropTypes.array,
+    locale: PropTypes.string,
     toolbarClassName: PropTypes.string,
     toolbarHidden: PropTypes.bool,
     locale: PropTypes.string,
@@ -343,7 +344,7 @@ export default class WysiwygEditor extends Component {
       'defaultContentState', 'contentState', 'editorState', 'defaultEditorState', 'toolbarOnFocus',
       'toolbar', 'toolbarCustomButtons', 'toolbarClassName', 'editorClassName',
       'wrapperClassName', 'toolbarStyle', 'editorStyle', 'wrapperStyle', 'uploadCallback',
-      'onFocus', 'onBlur', 'onTab', 'mention', 'hashtag', 'ariaLabel', 'customBlockRenderFunc',
+      'onFocus', 'onBlur', 'onTab', 'mention', 'hashtag', 'ariaLabel', 'customBlockRenderFunc'
     ]);
   }
 
@@ -418,7 +419,6 @@ export default class WysiwygEditor extends Component {
       editorState,
       onChange: this.onChange,
     }
-
     return (
       <IntlProvider locale={this.editorProps.locale || 'en'} messages={translations[this.editorProps.locale || 'en']}>
         <div
