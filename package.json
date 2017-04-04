@@ -55,7 +55,7 @@
   "dependencies": {
     "babel-polyfill": "^6.23.0",
     "classnames": "^2.2.5",
-    "draftjs-utils": "^0.7.0",
+    "draftjs-utils": "0.7.0",
     "immutable": "^4.0.0-rc.1",
     "react-intl": "^2.2.3"
   },
