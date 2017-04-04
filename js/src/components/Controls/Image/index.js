@@ -17,14 +17,15 @@ class ImageControl extends Component {
     config: PropTypes.object,
   };
 
+
   state: Object = {
     imgSrc: '',
     showModal: false,
     dragEnter: false,
     uploadHighlighted: this.props.config.uploadEnabled && !!this.props.config.uploadCallback,
     showImageLoading: false,
-    height: 'auto',
-    width: '100%',
+    height: this.props.config.defaultSize.height,
+    width: this.props.config.defaultSize.width,
   };
 
   componentWillMount(): void {
@@ -52,7 +53,25 @@ class ImageControl extends Component {
     this.setState({
       dragEnter: false,
     });
-    this.uploadImage(event.dataTransfer.files[0]);
+    let data = event.dataTransfer.items;
+    let dataIsItems = true;
+    if(!data){
+      data = event.dataTransfer.files;
+      dataIsItems = false;
+    }
+    for (let i = 0; i < data.length; i += 1) {
+      if (data[i].kind === 'string' && data[i].type.match('^text/plain')) {
+        // This item is the target node
+      } else if (data[i].kind === 'string' && data[i].type.match('^text/html')) {
+        // Drag data item is HTML
+      } else if (data[i].kind === 'string' && data[i].type.match('^text/uri-list')) {
+        // Drag data item is URI
+      } else if ((!dataIsItems || data[i].kind === 'file') && data[i].type.match('^image/')) {
+        // Drag data item is an image file
+        const file = dataIsItems ? data[i].getAsFile() : data[i];
+        this.uploadImage(file);
+      }
+    }
   };
 
   onDragEnter: Function = (event: Object): void => {
@@ -262,6 +281,7 @@ class ImageControl extends Component {
               </div>
         }
         <div className="rdw-embedded-modal-size">
+          &#8597;&nbsp;
           <input
             ref={this.setHeightInputReference}
             onChange={this.updateHeight}
@@ -270,6 +290,7 @@ class ImageControl extends Component {
             className="rdw-embedded-modal-size-input"
             placeholder="Height"
           />
+          &nbsp;&#8596;&nbsp;
           <input
             ref={this.setWidthInputReference}
             onChange={this.updateWidth}
@@ -329,4 +350,4 @@ class ImageControl extends Component {
   }
 }
 
-export default injectIntl(ImageControl)
+export default injectIntl(ImageControl);

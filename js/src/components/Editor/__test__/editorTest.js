@@ -15,4 +15,14 @@ describe('Editor menu test suite', () => {
     assert.isDefined(editor.state().editorState);
     assert.isDefined(editor.state().editorFocused);
   });
+
+  it('should have toolbarHidden as false by default', () => {
+    const editor = shallow(<Editor />);
+    expect(editor.find('.rdw-editor-toolbar')).to.have.length(1);
+  });
+
+  it('should not have toolbar if toolbarHidden is set to true', () => {
+    const editor = shallow(<Editor toolbarHidden />);
+    expect(editor.find('.rdw-editor-toolbar')).to.have.length(0);
+  });
 });
