@@ -53,7 +53,12 @@ class ImageControl extends Component {
     this.setState({
       dragEnter: false,
     });
-    const data = event.dataTransfer.items;
+    let data = event.dataTransfer.items;
+    let dataIsItems = true;
+    if(!data){
+      data = event.dataTransfer.files;
+      dataIsItems = false;
+    }
     for (let i = 0; i < data.length; i += 1) {
       if (data[i].kind === 'string' && data[i].type.match('^text/plain')) {
         // This item is the target node
@@ -61,9 +66,9 @@ class ImageControl extends Component {
         // Drag data item is HTML
       } else if (data[i].kind === 'string' && data[i].type.match('^text/uri-list')) {
         // Drag data item is URI
-      } else if (data[i].kind === 'file' && data[i].type.match('^image/')) {
+      } else if ((!dataIsItems || data[i].kind === 'file') && data[i].type.match('^image/')) {
         // Drag data item is an image file
-        const file = data[i].getAsFile();
+        const file = dataIsItems ? data[i].getAsFile() : data[i];
         this.uploadImage(file);
       }
     }

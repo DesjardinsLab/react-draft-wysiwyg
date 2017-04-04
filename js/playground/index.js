@@ -1,9 +1,10 @@
 /* @flow */
 
+import 'babel-polyfill';
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import draftToHtml from 'draftjs-to-html'; // eslint-disable-line import/no-extraneous-dependencies
-import draftToMarkdown from 'draftjs-to-markdown'; // eslint-disable-line import/no-extraneous-dependencies
+import draftToHtml from '../../node_modules/draftjs-to-html'; // eslint-disable-line import/no-extraneous-dependencies
+import draftToMarkdown from '../../node_modules/draftjs-to-markdown'; // eslint-disable-line import/no-extraneous-dependencies
 import {
   convertFromHTML,
   convertToRaw,

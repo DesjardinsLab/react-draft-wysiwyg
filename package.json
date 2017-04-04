@@ -53,6 +53,7 @@
     "webpack-hot-middleware": "^2.17.1"
   },
   "dependencies": {
+    "babel-polyfill": "^6.23.0",
     "classnames": "^2.2.5",
     "draftjs-utils": "^0.7.0",
     "immutable": "^4.0.0-rc.1",
