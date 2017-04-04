@@ -22,13 +22,13 @@ import ModalHandler from '../../event-handler/modals';
 import FocusHandler from '../../event-handler/focus';
 import KeyDownHandler from '../../event-handler/keyDown';
 import SuggestionHandler from '../../event-handler/suggestions';
-import blockStyleFn from '../../utils/BlockStyle';
+import blockStyleFn from '../../Utils/BlockStyle';
 import { mergeRecursive } from '../../utils/toolbar';
 import { hasProperty, filter } from '../../utils/common';
 import Controls from '../Controls';
-import LinkDecorator from '../../decorators/Link';
+import LinkDecorator from '../../Decorators/Link';
 import getMentionDecorators from '../../decorators/Mention';
-import getHashtagDecorator from '../../decorators/Hashtag';
+import getHashtagDecorator from '../../decorators/HashTag';
 import getBlockRenderFunc from '../../renderer';
 import defaultToolbar from '../../config/defaultToolbar';
 import './styles.css';
@@ -217,7 +217,31 @@ export default class WysiwygEditor extends Component {
 
   onChange: Function = (editorState: Object): void => {
     const { readOnly, onEditorStateChange } = this.props;
-    if (!readOnly) {
+    const previousEditorState = this.state.editorState;
+    const previousContentState = previousEditorState.getCurrentContent();
+    const previousSelection = previousEditorState.getSelection();
+    const previousFocusKey = previousSelection.getFocusKey();
+    const previousBlock = previousContentState.getBlockForKey(previousFocusKey);
+    const currentContentState = editorState.getCurrentContent();
+    const currentSelection = editorState.getSelection();
+    const currentFocusKey = currentSelection.getFocusKey();
+    const currentBlock = currentContentState.getBlockForKey(currentFocusKey);
+    if (currentBlock.getType() === 'atomic' && previousBlock.getEntityAt(0)) {
+      const entity = previousContentState.getEntity(previousBlock.getEntityAt(0));
+      const newContentState = editorState.getCurrentContent();
+      const blockExists = newContentState.getBlockForKey(previousFocusKey);
+      if (blockExists && entity && entity.type === 'IMAGE') {
+        this.setState({
+          editorFocused: false,
+        });
+        if (!readOnly) {
+          if (onEditorStateChange) {
+            onEditorStateChange(previousEditorState);
+          }
+          this.afterChange(previousEditorState);
+        }
+      }
+    } else if (!readOnly) {
       if (onEditorStateChange) {
         onEditorStateChange(editorState);
       }
