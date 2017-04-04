@@ -204,6 +204,14 @@ export default class Demo2 extends Component {
               {'<Editor toolbarOnFocus />'}
             </code>
           </div>
+          <div className="docs-desc top-margined">
+            To hide the toolbar property toolbarHidden can be used.
+          </div>
+          <div>
+            <code>
+              {'<Editor toolbarHidden />'}
+            </code>
+          </div>
         </div>
         <div className="docs-section">
           <div className="docs-label">
@@ -319,6 +327,7 @@ export default class Demo2 extends Component {
               &nbsp;&nbsp;&nbsp;&nbsp;uploadEnabled: true,<br />
               &nbsp;&nbsp;&nbsp;&nbsp;alignmentEnabled: false,<br />
               &nbsp;&nbsp;&nbsp;&nbsp;uploadCallback: undefined,<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;defaultSize: {"{ height: 'auto',  width: '100%' }"}, <br />
               &nbsp;&nbsp;{'}'}, <br />
               &nbsp;&nbsp;remove: {'{ icon: eraser, className: undefined }'}, <br />
               &nbsp;&nbsp;history: {'{'} <br />
@@ -353,6 +362,20 @@ export default class Demo2 extends Component {
         </div>
         <div className="docs-section">
           <div className="docs-label">
+            BlockType label
+          </div>
+          <div className="docs-desc">
+            To add custom labels to the blockTypeslit, in the blockType configs :
+            <code>
+              displayNames: {H1: "Title", H2: "Subtitle", ...}
+            </code>
+          </div>
+        </div>
+        <div className="docs-section">
+          <div className="docs-label">
+            Image
+          </div>
+          <div className="docs-sub-label">
             Uploading Image
           </div>
           <div className="docs-desc">
@@ -373,6 +396,12 @@ export default class Demo2 extends Component {
           </div>
           <div className="docs-desc top-margined">
             PLEASE NOTE: Property uploadCallback of editor component has been deprecated and will be removed in release 2.0. Its  now recommended to pass uploadCallback inside toolbar property.
+          </div>
+          <div className="docs-sub-label">
+            Set DefaultSize for images
+          </div>
+          <div className="docs-desc">
+            Default image size is (height: auto, width: 100%). This can be overridden using property defaultSize in toolbar configurations.
           </div>
         </div>
         <div className="docs-section">
