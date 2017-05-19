@@ -1,5 +1,6 @@
-import React, { PropTypes, Component } from 'react';
-import { Entity } from 'draft-js';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import { Entity, EditorState } from 'draft-js';
 import classNames from 'classnames';
 import Option from '../../components/Option';
 import styles from './styles.css'; // eslint-disable-line no-unused-vars
@@ -36,6 +37,7 @@ const getImageComponent = (config) => {
         entityKey,
         { alignment }
       );
+      config.onChange(EditorState.push(config.getEditorState(), contentState, 'change-block-data'))
       this.setState({
         dummy: true,
       });
@@ -48,10 +50,15 @@ const getImageComponent = (config) => {
       });
     };
 
-    renderAlignmentOptions(): Object {
+    renderAlignmentOptions(alignment): Object {
       return (
         <div
-          className="rdw-image-alignment-options-popup"
+          className={classNames(
+            'rdw-image-alignment-options-popup',
+            {
+              'rdw-image-alignment-options-popup-right': alignment === 'right',
+            }
+          )}
         >
           <Option
             onClick={this.setEntityAlignmentLeft}
@@ -98,7 +105,7 @@ const getImageComponent = (config) => {
           <span className="rdw-image-imagewrapper">
             <img
               src={src}
-              role="presentation"
+              alt=""
               style={{
                 height,
                 width,
@@ -106,7 +113,7 @@ const getImageComponent = (config) => {
             />
             {
               !isReadOnly() && hovered && isImageAlignmentEnabled() ?
-                this.renderAlignmentOptions()
+                this.renderAlignmentOptions(alignment)
                 :
                 undefined
             }

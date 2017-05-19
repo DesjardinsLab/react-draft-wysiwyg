@@ -1,6 +1,7 @@
 /* @flow */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import {
   Editor,
   EditorState,
@@ -11,39 +12,27 @@ import {
 } from 'draft-js';
 import {
   changeDepth,
-  setColors,
-  setFontSizes,
   handleNewLine,
-  setFontFamilies,
   getCustomStyleMap,
+  extractInlineStyle,
 } from 'draftjs-utils';
 import classNames from 'classnames';
 import ModalHandler from '../../event-handler/modals';
 import FocusHandler from '../../event-handler/focus';
 import KeyDownHandler from '../../event-handler/keyDown';
 import SuggestionHandler from '../../event-handler/suggestions';
-import blockStyleFn from '../../utils/BlockStyle';
+import { blockStyleFn } from '../../Utils/BlockStyle';
 import { mergeRecursive } from '../../utils/toolbar';
 import { hasProperty, filter } from '../../utils/common';
 import Controls from '../Controls';
-import LinkDecorator from '../../decorators/Link';
+import getLinkDecorator from '../../Decorators/Link';
 import getMentionDecorators from '../../decorators/Mention';
-import getHashtagDecorator from '../../decorators/Hashtag';
+import getHashtagDecorator from '../../decorators/HashTag';
 import getBlockRenderFunc from '../../renderer';
 import defaultToolbar from '../../config/defaultToolbar';
+import localeTranslations from '../../i18n';
 import './styles.css';
 import '../../../../css/Draft.css';
-// Translations
-import { IntlProvider, addLocaleData} from 'react-intl';
-import en from 'react-intl/locale-data/en';
-import fr from 'react-intl/locale-data/fr';
-addLocaleData([...en, ...fr]);
-import draftWysiwygTranslationsEN from '../../i18n/en';
-import draftWysiwygTranslationsFR from '../../i18n/fr';
-const translations = {
-  "en": draftWysiwygTranslationsEN,
-  "fr": draftWysiwygTranslationsFR,
-}
 
 export default class WysiwygEditor extends Component {
 
@@ -65,6 +54,7 @@ export default class WysiwygEditor extends Component {
     toolbarClassName: PropTypes.string,
     toolbarHidden: PropTypes.bool,
     locale: PropTypes.string,
+    localization: PropTypes.object,
     editorClassName: PropTypes.string,
     wrapperClassName: PropTypes.string,
     toolbarStyle: PropTypes.object,
@@ -88,20 +78,20 @@ export default class WysiwygEditor extends Component {
     ariaExpanded: PropTypes.string,
     ariaHasPopup: PropTypes.string,
     customBlockRenderFunc: PropTypes.func,
+    customDecorators: PropTypes.array,
   };
 
   static defaultProps = {
     toolbarOnFocus: false,
     toolbarHidden: false,
     stripPastedStyles: false,
+    localization: { locale: 'en', translations: {} },
+    customDecorators: [],
   }
 
   constructor(props) {
     super(props);
     const toolbar = mergeRecursive(defaultToolbar, props.toolbar);
-    setFontFamilies(toolbar.fontFamily && toolbar.fontFamily.options);
-    setFontSizes(toolbar.fontSize && toolbar.fontSize.options);
-    setColors(toolbar.colorPicker && toolbar.colorPicker.colors);
     this.state = {
       editorState: undefined,
       editorFocused: false,
@@ -113,7 +103,9 @@ export default class WysiwygEditor extends Component {
     this.blockRendererFn = getBlockRenderFunc({
       isReadOnly: this.isReadOnly,
       isImageAlignmentEnabled: this.isImageAlignmentEnabled,
-    }, props.customBlockRenderFunc, this.getEditorState);
+      getEditorState: this.getEditorState,
+      onChange: this.onChange,
+    }, props.customBlockRenderFunc);
     this.editorProps = this.filterEditorProps(props);
     this.customStyleMap = getCustomStyleMap();
   }
@@ -121,6 +113,7 @@ export default class WysiwygEditor extends Component {
   componentWillMount(): void {
     this.compositeDecorator = this.getCompositeDecorator();
     const editorState = this.createEditorState(this.compositeDecorator);
+    extractInlineStyle(editorState);
     this.setState({
       editorState,
     });
@@ -135,9 +128,6 @@ export default class WysiwygEditor extends Component {
     const newState = {};
     if (this.props.toolbar !== props.toolbar) {
       const toolbar = mergeRecursive(defaultToolbar, props.toolbar);
-      setFontFamilies(toolbar.fontFamily && toolbar.fontFamily.options);
-      setFontSizes(toolbar.fontSize && toolbar.fontSize.options);
-      setColors(toolbar.colorPicker && toolbar.colorPicker.colors);
       newState.toolbar = toolbar;
     }
     if (hasProperty(props, 'editorState') && this.props.editorState !== props.editorState) {
@@ -158,6 +148,11 @@ export default class WysiwygEditor extends Component {
       } else {
         newState.editorState = EditorState.createEmpty(this.compositeDecorator);
       }
+    }
+    if (newState.editorState &&
+      (this.props.editorState && this.props.editorState.getCurrentContent().getBlockMap().size) !==
+      (newState.editorState && newState.editorState.getCurrentContent().getBlockMap().size)) {
+      extractInlineStyle(newState.editorState);
     }
     this.setState(newState);
     this.editorProps = this.filterEditorProps(props);
@@ -273,8 +268,10 @@ export default class WysiwygEditor extends Component {
     this.editor = ref;
   };
 
-  getCompositeDecorator = ():void => {
-    const decorators = [LinkDecorator];
+  getCompositeDecorator = (): void => {
+    let decorators = [...this.props.customDecorators, getLinkDecorator({
+      showOpenOptionOnHover: this.state.toolbar.link.showOpenOptionOnHover,
+    })];
     if (this.props.mention) {
       decorators.push(...getMentionDecorators({
         ...this.props.mention,
@@ -300,8 +297,6 @@ export default class WysiwygEditor extends Component {
   isReadOnly = () => this.props.readOnly;
 
   isImageAlignmentEnabled = () => this.state.toolbar.image.alignmentEnabled;
-
-  getShowOpenOptionOnHover = () => this.state.toolbar.link.showOpenOptionOnHover;
 
   createEditorState = (compositeDecorator) => {
     let editorState;
@@ -340,10 +335,11 @@ export default class WysiwygEditor extends Component {
   filterEditorProps = (props) => {
     return filter(props, [
       'onChange', 'onEditorStateChange', 'onContentStateChange', 'initialContentState',
-      'defaultContentState', 'contentState', 'editorState', 'defaultEditorState', 'toolbarOnFocus',
-      'toolbar', 'toolbarCustomButtons', 'toolbarClassName', 'editorClassName',
-      'wrapperClassName', 'toolbarStyle', 'editorStyle', 'wrapperStyle', 'uploadCallback',
-      'onFocus', 'onBlur', 'onTab', 'mention', 'hashtag', 'ariaLabel', 'customBlockRenderFunc',
+      'defaultContentState', 'contentState', 'editorState', 'defaultEditorState', 'locale',
+      'localization', 'toolbarOnFocus', 'toolbar', 'toolbarCustomButtons', 'toolbarClassName',
+      'editorClassName', 'toolbarHidden', 'wrapperClassName', 'toolbarStyle', 'editorStyle',
+      'wrapperStyle', 'uploadCallback', 'onFocus', 'onBlur', 'onTab', 'mention', 'hashtag',
+      'ariaLabel', 'customBlockRenderFunc', 'customDecorators',
     ]);
   }
 
@@ -399,6 +395,7 @@ export default class WysiwygEditor extends Component {
      } = this.state;
     const {
       locale,
+      localization: { locale: newLocale, translations },
       toolbarCustomButtons,
       toolbarOnFocus,
       toolbarClassName,
@@ -417,69 +414,68 @@ export default class WysiwygEditor extends Component {
       modalHandler: this.modalHandler,
       editorState,
       onChange: this.onChange,
+      translations: { ...localeTranslations[locale || newLocale], ...translations },
     }
 
     return (
-      <IntlProvider locale={this.editorProps.locale || 'en'} messages={translations[this.editorProps.locale || 'en']}>
-        <div
-          id={this.wrapperId}
-          className={classNames('rdw-editor-wrapper', wrapperClassName)}
-          style={wrapperStyle}
-          onClick={this.modalHandler.onEditorClick}
-          onBlur={this.onWrapperBlur}
-          aria-label="rdw-wrapper"
-        >
-          {
-            !toolbarHidden &&
-            (editorFocused || this.focusHandler.isInputFocused() || !toolbarOnFocus) &&
-            <div
-              className={classNames('rdw-editor-toolbar', toolbarClassName)}
-              style={toolbarStyle}
-              onMouseDown={this.preventDefault}
-              aria-label="rdw-toolbar"
-              aria-hidden={(!editorFocused && toolbarOnFocus).toString()}
-              onFocus={this.onToolbarFocus}
-            >
-              {toolbar.options.map((opt,index) => {
-                const Control = Controls[opt];
-                const config = toolbar[opt];
-                if (opt === 'image' && uploadCallback) {
-                  config.uploadCallback = uploadCallback;
-                }
-                return <Control key={index} {...controlProps} config={config} />;
-              })}
-              {toolbarCustomButtons && toolbarCustomButtons.map((button, index) =>
-                React.cloneElement(button, { key: index, ...controlProps }))}
-            </div>
-          }
+      <div
+        id={this.wrapperId}
+        className={classNames('rdw-editor-wrapper', wrapperClassName)}
+        style={wrapperStyle}
+        onClick={this.modalHandler.onEditorClick}
+        onBlur={this.onWrapperBlur}
+        aria-label="rdw-wrapper"
+      >
+        {
+          !toolbarHidden &&
+          (editorFocused || this.focusHandler.isInputFocused() || !toolbarOnFocus) &&
           <div
-            ref={this.setWrapperReference}
-            className={classNames('rdw-editor-main', editorClassName)}
-            style={editorStyle}
-            onClick={this.focusEditor}
-            onFocus={this.onEditorFocus}
-            onBlur={this.onEditorBlur}
-            onKeyDown={KeyDownHandler.onKeyDown}
-            onMouseDown={this.onEditorMouseDown}
+            className={classNames('rdw-editor-toolbar', toolbarClassName)}
+            style={toolbarStyle}
+            onMouseDown={this.preventDefault}
+            aria-label="rdw-toolbar"
+            aria-hidden={(!editorFocused && toolbarOnFocus).toString()}
+            onFocus={this.onToolbarFocus}
           >
-            <Editor
-              ref={this.setEditorReference}
-              onTab={this.onTab}
-              onUpArrow={this.onUpDownArrow}
-              onDownArrow={this.onUpDownArrow}
-              editorState={editorState}
-              onChange={this.onChange}
-              blockStyleFn={blockStyleFn}
-              customStyleMap={this.customStyleMap}
-              handleReturn={this.handleReturn}
-              blockRendererFn={this.blockRendererFn}
-              handleKeyCommand={this.handleKeyCommand}
-              ariaLabel={ariaLabel || 'rdw-editor'}
-              {...this.editorProps}
-            />
+            {toolbar.options.map((opt,index) => {
+              const Control = Controls[opt];
+              const config = toolbar[opt];
+              if (opt === 'image' && uploadCallback) {
+                config.uploadCallback = uploadCallback;
+              }
+              return <Control key={index} {...controlProps} config={config} />;
+            })}
+            {toolbarCustomButtons && toolbarCustomButtons.map((button, index) =>
+              React.cloneElement(button, { key: index, ...controlProps }))}
           </div>
+        }
+        <div
+          ref={this.setWrapperReference}
+          className={classNames('rdw-editor-main', editorClassName)}
+          style={editorStyle}
+          onClick={this.focusEditor}
+          onFocus={this.onEditorFocus}
+          onBlur={this.onEditorBlur}
+          onKeyDown={KeyDownHandler.onKeyDown}
+          onMouseDown={this.onEditorMouseDown}
+        >
+          <Editor
+            ref={this.setEditorReference}
+            onTab={this.onTab}
+            onUpArrow={this.onUpDownArrow}
+            onDownArrow={this.onUpDownArrow}
+            editorState={editorState}
+            onChange={this.onChange}
+            blockStyleFn={blockStyleFn}
+            customStyleMap={getCustomStyleMap()}
+            handleReturn={this.handleReturn}
+            blockRendererFn={this.blockRendererFn}
+            handleKeyCommand={this.handleKeyCommand}
+            ariaLabel={ariaLabel || 'rdw-editor'}
+            {...this.editorProps}
+          />
         </div>
-      </IntlProvider>
+      </div>
     );
   }
 }
