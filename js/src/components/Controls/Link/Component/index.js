@@ -1,6 +1,7 @@
 /* @flow */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import { stopPropagation } from '../../../../utils/common';
@@ -26,6 +27,7 @@ class LayoutComponent extends Component {
     showModal: false,
     linkTarget: '',
     linkTitle: '',
+    linkTargetOption: this.props.config.defaultTargetOption,
   };
 
   componentWillReceiveProps(props) {
@@ -34,6 +36,7 @@ class LayoutComponent extends Component {
         showModal: false,
         linkTarget: '',
         linkTitle: '',
+        linkTargetOption: this.props.config.defaultTargetOption,
       });
     }
   }
@@ -45,13 +48,19 @@ class LayoutComponent extends Component {
 
   addLink: Function = (): void => {
     const { onChange } = this.props;
-    const { linkTitle, linkTarget } = this.state;
-    onChange('link', linkTitle, linkTarget);
+    const { linkTitle, linkTarget, linkTargetOption } = this.state;
+    onChange('link', linkTitle, linkTarget, linkTargetOption);
   };
 
   updateValue: Function = (event: Object): void => {
     this.setState({
       [`${event.target.name}`]: event.target.value,
+    });
+  };
+
+  updateTarget: Function = (event: Object): void => {
+    this.setState({
+      linkTargetOption: event.target.checked ? '_blank' : '_self',
     });
   };
 
@@ -63,27 +72,31 @@ class LayoutComponent extends Component {
 
   signalExpandShowModal = () => {
     const { onExpandEvent, currentState: { link, selectionText } } = this.props;
+    const { linkTargetOption } = this.state;
     onExpandEvent();
     this.setState({
       showModal: true,
       linkTarget: link && link.target,
+      linkTargetOption: (link && link.targetOption) || linkTargetOption,
       linkTitle: (link && link.title) || selectionText,
     });
   }
 
   forceExpandAndShowModal: Function = (): void => {
     const { doExpand, currentState: { link, selectionText } } = this.props;
+    const { linkTargetOption } = this.state;
     doExpand();
     this.setState({
       showModal: true,
       linkTarget: link && link.target,
+      linkTargetOption: (link && link.targetOption) || linkTargetOption,
       linkTitle: (link && link.title) || selectionText,
     });
   }
 
   renderAddLinkModal() {
     const { config: { popupClassName }, doCollapse, translations } = this.props;
-    const { linkTitle, linkTarget } = this.state;
+    const { linkTitle, linkTarget, linkTargetOption } = this.state;
     return (
       <div
         className={classNames('rdw-link-modal', popupClassName)}
@@ -93,7 +106,6 @@ class LayoutComponent extends Component {
           {translations['components.controls.link.linkTitle']}
         </span>
         <input
-          ref={this.setLinkTitleReference}
           className="rdw-link-modal-input"
           onChange={this.updateValue}
           onBlur={this.updateValue}
@@ -104,13 +116,21 @@ class LayoutComponent extends Component {
           {translations['components.controls.link.linkTarget']}
         </span>
         <input
-          ref={this.setLinkTextReference}
           className="rdw-link-modal-input"
           onChange={this.updateValue}
           onBlur={this.updateValue}
           name="linkTarget"
           value={linkTarget}
         />
+        <span className="rdw-link-modal-target-option">
+          <input
+            type="checkbox"
+            defaultChecked={linkTargetOption === '_blank'}
+            value="_blank"
+            onChange={this.updateTarget}
+          />
+          <span>{translations['components.controls.link.linkTargetOption']}</span>
+        </span>
         <span className="rdw-link-modal-buttonsection">
           <button
             className="rdw-link-modal-btn"
@@ -145,6 +165,7 @@ class LayoutComponent extends Component {
           onClick={this.signalExpandShowModal}
           aria-haspopup="true"
           aria-expanded={showModal}
+          title={link.title}
         >
           <img
             src={link.icon}
@@ -156,6 +177,7 @@ class LayoutComponent extends Component {
           value="ordered-list-item"
           className={classNames(unlink.className)}
           onClick={this.removeLink}
+          title={unlink.title}
         >
           <img
             src={unlink.icon}
@@ -177,7 +199,7 @@ class LayoutComponent extends Component {
       config,
       currentState,
     } = this.props;
-    const { options, link, unlink, className, dropdownClassName } = config;
+    const { options, link, unlink, className, dropdownClassName, title } = config;
     const { showModal } = this.state;
     return (
       <div
@@ -185,6 +207,7 @@ class LayoutComponent extends Component {
         aria-haspopup="true"
         aria-label="rdw-link-control"
         aria-expanded={expanded}
+        title={title}
       >
         <Dropdown
           className={classNames('rdw-link-dropdown', className)}
@@ -202,6 +225,7 @@ class LayoutComponent extends Component {
           {options.indexOf('link') >= 0 && <DropdownOption
             onClick={this.forceExpandAndShowModal}
             className={classNames('rdw-link-dropdownoption', link.className)}
+            title={link.title}
           >
             <img
               src={link.icon}
@@ -212,6 +236,7 @@ class LayoutComponent extends Component {
             onClick={this.removeLink}
             disabled={!currentState.link}
             className={classNames('rdw-link-dropdownoption', unlink.className)}
+            title={unlink.title}
           >
             <img
               src={unlink.icon}

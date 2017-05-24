@@ -1,6 +1,7 @@
 /* @flow */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import { stopPropagation } from '../../../../utils/common';
@@ -100,13 +101,14 @@ class LayoutComponent extends Component {
   };
 
   render(): Object {
-    const { config: { icon, className }, expanded, onExpandEvent } = this.props;
+    const { config: { icon, className, title }, expanded, onExpandEvent } = this.props;
     return (
       <div
         className="rdw-colorpicker-wrapper"
         aria-haspopup="true"
         aria-expanded={expanded}
         aria-label="rdw-color-picker"
+        title={title}
       >
         <Option
           onClick={onExpandEvent}

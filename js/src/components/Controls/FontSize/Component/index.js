@@ -1,6 +1,7 @@
 /* @flow */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import { Dropdown, DropdownOption } from '../../../Dropdown';
@@ -36,7 +37,7 @@ export default class LayoutComponent extends Component {
 
   render() {
     const {
-      config: { icon, className, dropdownClassName, options },
+      config: { icon, className, dropdownClassName, options, title },
       translations,
       onChange,
       expanded,
@@ -59,6 +60,7 @@ export default class LayoutComponent extends Component {
           doExpand={doExpand}
           doCollapse={doCollapse}
           onExpandEvent={onExpandEvent}
+          title={title}
         >
           {currentFontSize ?
             <span>{currentFontSize}</span>

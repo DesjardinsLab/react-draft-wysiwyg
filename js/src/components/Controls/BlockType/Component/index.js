@@ -1,6 +1,7 @@
 /* @flow */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import Option from '../../../Option';
@@ -31,12 +32,12 @@ class LayoutComponent extends Component {
     { label: 'Blockquote', displayName: this.props.translations['components.controls.blocktype.blockquote'] },
   ];
 
-  renderFlat(): void {
+  renderFlat(blocks: Array<Object>): void {
     const { config: { className }, onChange, currentState: { blockType } } = this.props;
     return (
       <div className={classNames('rdw-inline-wrapper', className)}>
         {
-        this.blocksTypes.map((block, index) =>
+        blocks.map((block, index) =>
           <Option
             key={index}
             value={block.label}
@@ -51,9 +52,9 @@ class LayoutComponent extends Component {
     );
   }
 
-  renderInDropdown(): void {
+  renderInDropdown(blocks: Array<Object>): void {
     const {
-      config: { className, dropdownClassName },
+      config: { className, dropdownClassName, title },
       currentState: { blockType },
       expanded,
       doExpand,
@@ -74,10 +75,11 @@ class LayoutComponent extends Component {
           doExpand={doExpand}
           doCollapse={doCollapse}
           onExpandEvent={onExpandEvent}
+          title={title}
         >
           <span>{currentLabel || translations['components.controls.blocktype.blocktype']}</span>
           {
-            this.blocksTypes.map((block, index) =>
+            blocks.map((block, index) =>
               <DropdownOption
                 active={blockType === block.label}
                 value={block.label}

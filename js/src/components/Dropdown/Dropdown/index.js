@@ -1,6 +1,7 @@
 /* @flow */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import styles from './styles.css'; // eslint-disable-line no-unused-vars
 
@@ -18,6 +19,7 @@ export default class Dropdown extends Component {
     onExpandEvent: PropTypes.func,
     optionWrapperClassName: PropTypes.string,
     ariaLabel: PropTypes.string,
+    title: PropTypes.string,
   };
 
   state: Object = {
@@ -63,6 +65,7 @@ export default class Dropdown extends Component {
       optionWrapperClassName,
       ariaLabel,
       onExpandEvent,
+      title,
     } = this.props;
     const { highlighted } = this.state;
     const options = children.slice(1, children.length);
@@ -75,6 +78,7 @@ export default class Dropdown extends Component {
         <a
           className="rdw-dropdown-selectedtext"
           onClick={onExpandEvent}
+          title={title}
         >
           {children[0]}
           <div

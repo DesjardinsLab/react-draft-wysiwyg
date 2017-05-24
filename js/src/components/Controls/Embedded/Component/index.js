@@ -1,6 +1,7 @@
 /* @flow */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import { stopPropagation } from '../../../../utils/common';
@@ -109,7 +110,7 @@ class LayoutComponent extends Component {
   }
 
   render(): Object {
-    const { config: { icon, className }, expanded, onExpandEvent } = this.props;
+    const { config: { icon, className, title }, expanded, onExpandEvent } = this.props;
     return (
       <div
         className="rdw-embedded-wrapper"
@@ -121,6 +122,7 @@ class LayoutComponent extends Component {
           className={classNames(className)}
           value="unordered-list-item"
           onClick={onExpandEvent}
+          title={title}
         >
           <img
             src={icon}

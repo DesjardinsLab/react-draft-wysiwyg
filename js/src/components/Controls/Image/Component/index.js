@@ -1,6 +1,7 @@
 /* @flow */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import Option from '../../../Option';
@@ -156,7 +157,7 @@ class LayoutComponent extends Component {
 
   renderAddImageModal(): Object {
     const { imgSrc, uploadHighlighted, showImageLoading, dragEnter, height, width } = this.state;
-    const { config: { popupClassName, uploadCallback, uploadEnabled, urlEnabled }, doCollapse, translations } = this.props;
+    const { config: { popupClassName, uploadCallback, uploadEnabled, urlEnabled, inputAccept }, doCollapse, translations } = this.props;
     return (
       <div
         className={classNames('rdw-image-modal', popupClassName)}
@@ -211,7 +212,7 @@ class LayoutComponent extends Component {
               <input
                 type="file"
                 id="file"
-                accept="image/*"
+                accept={inputAccept}
                 onChange={this.selectImage}
                 className="rdw-image-modal-upload-option-input"
               />
@@ -272,7 +273,7 @@ class LayoutComponent extends Component {
   }
 
   render(): Object {
-    const { config: { icon, className }, expanded, onExpandEvent } = this.props;
+    const { config: { icon, className, title }, expanded, onExpandEvent } = this.props;
     return (
       <div
         className="rdw-image-wrapper"
@@ -284,6 +285,7 @@ class LayoutComponent extends Component {
           className={classNames(className)}
           value="unordered-list-item"
           onClick={onExpandEvent}
+          title={title}
         >
           <img
             src={icon}

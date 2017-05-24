@@ -1,6 +1,7 @@
 /* @flow */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import {
   Editor,
   EditorState,
@@ -13,6 +14,8 @@ import {
   changeDepth,
   handleNewLine,
   getCustomStyleMap,
+  extractInlineStyle,
+  getSelectedBlocksType,
 } from 'draftjs-utils';
 import classNames from 'classnames';
 import ModalHandler from '../../event-handler/modals';
@@ -23,7 +26,7 @@ import blockStyleFn from '../../Utils/BlockStyle';
 import { mergeRecursive } from '../../utils/toolbar';
 import { hasProperty, filter } from '../../utils/common';
 import Controls from '../Controls';
-import LinkDecorator from '../../Decorators/Link';
+import getLinkDecorator from '../../Decorators/Link';
 import getMentionDecorators from '../../decorators/Mention';
 import getHashtagDecorator from '../../decorators/HashTag';
 import getBlockRenderFunc from '../../renderer';
@@ -111,6 +114,7 @@ export default class WysiwygEditor extends Component {
   componentWillMount(): void {
     this.compositeDecorator = this.getCompositeDecorator();
     const editorState = this.createEditorState(this.compositeDecorator);
+    extractInlineStyle(editorState);
     this.setState({
       editorState,
     });
@@ -145,6 +149,11 @@ export default class WysiwygEditor extends Component {
       } else {
         newState.editorState = EditorState.createEmpty(this.compositeDecorator);
       }
+    }
+    if (newState.editorState &&
+      (this.props.editorState && this.props.editorState.getCurrentContent().getBlockMap().size) !==
+      (newState.editorState && newState.editorState.getCurrentContent().getBlockMap().size)) {
+      extractInlineStyle(newState.editorState);
     }
     this.setState(newState);
     this.editorProps = this.filterEditorProps(props);
@@ -261,7 +270,9 @@ export default class WysiwygEditor extends Component {
   };
 
   getCompositeDecorator = (): void => {
-    let decorators = [...this.props.customDecorators, LinkDecorator];
+    let decorators = [...this.props.customDecorators, getLinkDecorator({
+      showOpenOptionOnHover: this.state.toolbar.link.showOpenOptionOnHover,
+    })];
     if (this.props.mention) {
       decorators.push(...getMentionDecorators({
         ...this.props.mention,
@@ -287,8 +298,6 @@ export default class WysiwygEditor extends Component {
   isReadOnly = () => this.props.readOnly;
 
   isImageAlignmentEnabled = () => this.state.toolbar.image.alignmentEnabled;
-
-  getShowOpenOptionOnHover = () => this.state.toolbar.link.showOpenOptionOnHover;
 
   createEditorState = (compositeDecorator) => {
     let editorState;
@@ -327,10 +336,11 @@ export default class WysiwygEditor extends Component {
   filterEditorProps = (props) => {
     return filter(props, [
       'onChange', 'onEditorStateChange', 'onContentStateChange', 'initialContentState',
-      'defaultContentState', 'contentState', 'editorState', 'defaultEditorState', 'toolbarOnFocus',
-      'toolbar', 'toolbarCustomButtons', 'toolbarClassName', 'editorClassName',
-      'wrapperClassName', 'toolbarStyle', 'editorStyle', 'wrapperStyle', 'uploadCallback',
-      'onFocus', 'onBlur', 'onTab', 'mention', 'hashtag', 'ariaLabel', 'customBlockRenderFunc',
+      'defaultContentState', 'contentState', 'editorState', 'defaultEditorState', 'locale',
+      'localization', 'toolbarOnFocus', 'toolbar', 'toolbarCustomButtons', 'toolbarClassName',
+      'editorClassName', 'toolbarHidden', 'wrapperClassName', 'toolbarStyle', 'editorStyle',
+      'wrapperStyle', 'uploadCallback', 'onFocus', 'onBlur', 'onTab', 'mention', 'hashtag',
+      'ariaLabel', 'customBlockRenderFunc', 'customDecorators',
     ]);
   }
 

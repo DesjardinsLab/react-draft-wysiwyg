@@ -1,6 +1,7 @@
 /* @flow */
 
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 import { getFirstIcon } from '../../../../utils/toolbar';
@@ -34,7 +35,7 @@ export default class History extends Component {
       doCollapse,
       currentState : { undoDisabled, redoDisabled },
     } = this.props;
-    const {options, undo, redo, className, dropdownClassName} = config;
+    const {options, undo, redo, className, dropdownClassName, title} = config;
     return (
       <Dropdown
         className={classNames('rdw-history-dropdown', className)}
@@ -44,6 +45,7 @@ export default class History extends Component {
         doCollapse={doCollapse}
         onExpandEvent={onExpandEvent}
         aria-label="rdw-history-control"
+        title={title}
       >
         <img
           src={getFirstIcon(config)}
@@ -54,6 +56,7 @@ export default class History extends Component {
           onClick={this.onChange}
           disabled={undoDisabled}
           className={classNames('rdw-history-dropdownoption', undo.className)}
+          title={undo.title}
         >
           <img
             src={undo.icon}
@@ -65,6 +68,7 @@ export default class History extends Component {
           onClick={this.onChange}
           disabled={redoDisabled}
           className={classNames('rdw-history-dropdownoption', redo.className)}
+          title={redo.title}
         >
           <img
             src={redo.icon}
@@ -87,6 +91,7 @@ export default class History extends Component {
           onClick={this.onChange}
           className={classNames(undo.className)}
           disabled={undoDisabled}
+          title={undo.title}
         >
           <img
             src={undo.icon}
@@ -98,6 +103,7 @@ export default class History extends Component {
           onClick={this.onChange}
           className={classNames(redo.className)}
           disabled={redoDisabled}
+          title={redo.title}
         >
           <img
             src={redo.icon}
